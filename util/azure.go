@@ -1,0 +1,117 @@
+package util
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"reflect"
+	"strings"
+	"time"
+)
+
+const (
+	KeyChatGptOpenKey  = "CHAT_GPT_OEPNAPI_KEY"
+	KeyWechatApiId     = "WECHAT_CHANNEL_APP_ID"
+	KeyWechatApiSecret = "WECHAT_CHANNEL_APP_SECRET"
+
+	// Insert Into AppService
+	AzureConfigCenterCredential = "AZURE_CONFIG_CENTER_CREDENTIAL"
+	AzureConfigCenterSecret     = "AZURE_CONFIG_CENTER_SECRET"
+
+	PathGetFormat = "/kv/%s?api-version=1.0"
+
+	invalidReturn = "error"
+)
+
+type GetResponse struct {
+	Etag         *string           `json:"etag"`
+	Key          *string           `json:"key"`
+	Label        *string           `json:"label"`
+	ContentType  *string           `json:"content_type"`
+	Value        *string           `json:"value"`
+	LastModified *time.Time        `json:"last_modified"`
+	Locked       *bool             `json:"locked"`
+	Tags         map[string]string `json:"tags"`
+}
+
+func (g *GetResponse) String() string {
+	return fmt.Sprintf(`{etag:%s,key:%s,label:%v,content_type:%s,value:%s,last_modified:%v,locked:%v,tags:%v}`,
+		ins(g.Etag), ins(g.Key), ins(g.Label), ins(g.ContentType), ins(g.Value), ins(g.LastModified), ins(g.Locked), g.Tags)
+}
+
+func ins(v any) any {
+	if v == nil || reflect.ValueOf(v).IsNil() {
+		return v
+	}
+	if reflect.TypeOf(v).Kind() == reflect.Pointer {
+		return reflect.ValueOf(v).Elem().Interface()
+	}
+	return v
+}
+
+type IConfigurationFetcher interface {
+	GetString(ctx context.Context, key string) (res string, err error)
+}
+
+type ConfigurationFetcherImpl struct {
+	httpEndPoint    string
+	httpClient      *http.Client
+	azureCredential string
+	azureSecret     string
+}
+
+func NewAzureConfigurationFetcher(httpEndPoint, azureCredential, azureSecret string) IConfigurationFetcher {
+	return &ConfigurationFetcherImpl{
+		httpEndPoint:    httpEndPoint,
+		httpClient:      &http.Client{},
+		azureCredential: azureCredential,
+		azureSecret:     azureSecret,
+	}
+}
+
+func (impl *ConfigurationFetcherImpl) GetString(_ context.Context, key string) (string, error) {
+	url := impl.httpEndPoint + fmt.Sprintf(PathGetFormat, key)
+	var resp *http.Response
+	var err error
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return invalidReturn, err
+	}
+	req.Body = io.NopCloser(strings.NewReader(""))
+
+	err = SignRequest(impl.azureCredential, impl.azureSecret, req)
+	if err != nil {
+		return invalidReturn, err
+	}
+	err = Retry(3, 100*time.Millisecond, func() error {
+		var e error
+		resp, e = impl.httpClient.Do(req)
+		return e
+	})
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return invalidReturn, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return invalidReturn, fmt.Errorf("http error, code:%d, res:%+v", resp.StatusCode, resp)
+	}
+	bs, err := io.ReadAll(resp.Body)
+	str := string(bs)
+	_ = str
+	if err != nil {
+		return invalidReturn, err
+	}
+	var res = &GetResponse{}
+	err = json.Unmarshal(bs, res)
+	if err != nil {
+		return invalidReturn, err
+	}
+	if res.Value == nil {
+		return invalidReturn, nil
+	}
+	return *res.Value, nil
+}

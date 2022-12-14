@@ -4,9 +4,13 @@ package main
 
 import (
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/shamu00/wechat-channel/biz/handler"
+	"github.com/shamu00/wechat-channel/util"
 )
 
 func main() {
+	util.MustInitGlobal()
+	handler.Init(util.GlobalWechatApiId, util.GlobalWechatApiSecret)
 	h := server.Default()
 
 	register(h)
