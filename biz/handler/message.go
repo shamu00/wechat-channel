@@ -3,6 +3,9 @@ package handler
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/adaptor"
 	gogpt "github.com/sashabaranov/go-gpt3"
@@ -12,8 +15,6 @@ import (
 	"github.com/silenceper/wechat/v2/officialaccount"
 	oaconfig "github.com/silenceper/wechat/v2/officialaccount/config"
 	"github.com/silenceper/wechat/v2/officialaccount/message"
-	"log"
-	"time"
 )
 
 type MessageResponse struct {
