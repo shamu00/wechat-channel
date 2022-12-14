@@ -4,6 +4,7 @@ package main
 
 import (
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/common/config"
 	"github.com/shamu00/wechat-channel/biz/handler"
 	"github.com/shamu00/wechat-channel/util"
 )
@@ -11,7 +12,9 @@ import (
 func main() {
 	util.MustInitGlobal()
 	handler.Init(util.GlobalWechatApiId, util.GlobalWechatApiSecret)
-	h := server.Default()
+	h := server.Default(config.Option{func(o *config.Options) {
+		o.Addr = ":80"
+	}})
 
 	register(h)
 	h.Spin()
