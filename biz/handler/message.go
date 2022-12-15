@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
@@ -94,9 +95,10 @@ func (h handler) messageHandler(msg *message.MixMessage) *message.Reply {
 			MsgData: message.NewText(fmt.Sprintf("内部错误，请尝试重试 :)")),
 		}
 	}
+	callback := strings.ReplaceAll(res.Choices[0].Text, "\n", "")
 	log.Printf("[Debug]Chatgpt returns:%s", res.Choices[0].Text)
 	return &message.Reply{
 		MsgType: message.MsgTypeText,
-		MsgData: res.Choices[0].Text,
+		MsgData: message.NewText(callback),
 	}
 }
