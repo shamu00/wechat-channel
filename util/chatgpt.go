@@ -12,7 +12,7 @@ type IChatClient interface {
 
 const (
 	DefaultModel       = "text-davinci-003"
-	DefaultMaxTokens   = 150
+	DefaultMaxTokens   = 300
 	DefaultTemperature = 0.5
 	DefaultTop         = 1
 	DefaultN           = 1
