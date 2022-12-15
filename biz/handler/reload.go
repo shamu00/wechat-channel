@@ -11,6 +11,7 @@ import (
 
 func Reload(_ context.Context, c *app.RequestContext) {
 	util.MustInitGlobal()
+	InitMessageHandler(util.GlobalWechatApiId, util.GlobalWechatApiSecret)
 	c.JSON(consts.StatusOK, utils.H{
 		"message": "success",
 	})
