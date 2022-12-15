@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
@@ -29,14 +30,20 @@ var (
 	client *officialaccount.OfficialAccount
 )
 
+const EncodingKey = "WECHAT_ENCODING_KEY"
+const Token = "WECHAT_CHANNEL_TOKEN"
+
 func Init(appId, appSecret string) {
 	wechat = sdk.NewWechat()
 	mem = cache.NewMemory()
+	encodingKey := os.Getenv(EncodingKey)
+	token := os.Getenv(Token)
+	log.Printf("[Info]EncodingKey length:%d, token length:%d", len(encodingKey), len(token))
 	cfg = &oaconfig.Config{
 		AppID:          appId,
 		AppSecret:      appSecret,
-		Token:          "",
-		EncodingAESKey: "",
+		Token:          token,
+		EncodingAESKey: encodingKey,
 		Cache:          mem,
 	}
 	client = wechat.GetOfficialAccount(cfg)
