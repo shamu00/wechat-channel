@@ -77,7 +77,7 @@ type handler struct {
 }
 
 func (h handler) messageHandler(msg *message.MixMessage) *message.Reply {
-	log.Printf("[Debug]message:%+v", msg)
+	log.Printf("[Debug]incoming message:%+v", msg)
 	req := util.NewDefaultCompletionRequest(msg.Content, msg.CommonToken.GetOpenID())
 	var err error
 	var res *gogpt.CompletionResponse
