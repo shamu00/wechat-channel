@@ -33,12 +33,12 @@ var (
 const EncodingKey = "WECHAT_ENCODING_KEY"
 const Token = "WECHAT_CHANNEL_TOKEN"
 
-func Init(appId, appSecret string) {
+func InitMessageHandler(appId, appSecret string) {
 	wechat = sdk.NewWechat()
 	mem = cache.NewMemory()
 	encodingKey := os.Getenv(EncodingKey)
 	token := os.Getenv(Token)
-	log.Printf("[Info]EncodingKey length:%d, token length:%d", len(encodingKey), len(token))
+	log.Printf("[Info]EncodingKey length:%d, Token length:%d", len(encodingKey), len(token))
 	cfg = &oaconfig.Config{
 		AppID:          appId,
 		AppSecret:      appSecret,
@@ -55,7 +55,7 @@ func Message(ctx context.Context, c *app.RequestContext) {
 		fmt.Printf("[Error]GetCompatRequest, err:%v, origin:%v", err, c.GetRequest())
 		return
 	}
-	server := client.GetServer(request, adaptor.GetCompatResponseWriter(c.GetResponse()))
+	server := client.GetServer(request, adaptor.GetCompatResponseWriter(&c.Response))
 	h := &handler{ctx}
 	server.SetMessageHandler(h.messageHandler)
 	err = server.Serve()

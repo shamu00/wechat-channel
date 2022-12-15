@@ -11,7 +11,7 @@ import (
 
 func main() {
 	util.MustInitGlobal()
-	handler.Init(util.GlobalWechatApiId, util.GlobalWechatApiSecret)
+	handler.InitMessageHandler(util.GlobalWechatApiId, util.GlobalWechatApiSecret)
 	h := server.Default(config.Option{F: func(o *config.Options) {
 		o.Addr = ":80"
 	}})
